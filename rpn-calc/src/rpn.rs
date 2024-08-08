@@ -1,5 +1,52 @@
 use std::{error::Error as StdError, fmt::Display};
 
+pub struct RpnCommand {
+    calc: RpnCalc
+}
+
+impl RpnCommand {
+    pub fn new() -> RpnCommand {
+        RpnCommand { calc: RpnCalc::new() }
+    }
+
+    pub fn process_command(&mut self, command: &str) {
+        let (command_type, command) = command.split_once(" ")
+            .unwrap_or_else(|| (command, ""));
+        match command_type {
+            "help" => self.output_help(),
+            "calc" => self.calc(command),
+            "last" => self.last(),
+            ""     => println!("Please input a command."),
+            _      => { println!("Unrecognized command.")}
+        };
+    }
+
+    fn calc(&mut self, command: &str) {
+        match self.calc.calc(command) {
+            Ok(result) => println!("Result was: '{result}'."),
+            Err(err) => println!("Error: {:?}", err)
+        }
+    }
+
+    fn last(&self) {
+        if self.calc.last_input().is_some() && self.calc.last_result().is_some() {
+          println!("Last equation was {} = {}", 
+            self.calc.last_input().unwrap(), 
+            self.calc.last_result().unwrap());
+        } else {
+            println!("No equations computed yet.");
+        }
+    }
+
+    fn output_help(&self) {
+        println!("\nCommand List:");
+        println!("\tcalc <equation>: Calculates the RPN string following 'calc'.");
+        println!("\tlast: Outputs information of the last calculation.");
+        println!("\thelp: Outputs help information.");
+        println!("\texit: Exits program.\n");
+    }
+}
+
 pub struct RpnCalc {
     last_input: Option<String>,
     last_result: Option<i32>,
